@@ -1,0 +1,13 @@
+os
+requests
+json
+time
+random
+sys
+substring
+colorama
+datetime
+multiprocessing.dummy
+threading
+fake_useragent
+bs4
