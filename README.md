@@ -8,7 +8,7 @@
 ![](https://i.ibb.co/LpkBDHv/example.png)
 
 # Video URL Example
- https://www.tiktok.com/@username/video/1234567891234567891
+ https://www.tiktok.com/@username/video/1234567891234567891?lang=en
 
   
 # Legal
