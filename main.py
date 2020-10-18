@@ -29,21 +29,24 @@ class Main:
             content = [line.strip('\n') for line in f]
             return content
 
-    def PrintText(self,info_name,text,info_color:Fore,text_color:Fore):
-        lock = Lock()
-        lock.acquire()
-        sys.stdout.flush()
-        text = text.encode('ascii','replace').decode()
-        sys.stdout.write(f'[{info_color+info_name+Fore.RESET}] '+text_color+f'{text}\n')
-        lock.release()
-
     def __init__(self):
         self.SetTitle('One Man Builds TikTok Video Downloader Tool')
         self.clear()
-        init()
+        init(convert=True)
+        title = Fore.YELLOW+"""
+                             ___ _ _  _ ___ ____ _  _    _  _ _ ___  ____ ____  
+                              |  | |_/   |  |  | |_/     |  | | |  \ |___ |  |  
+                              |  | | \_  |  |__| | \_     \/  | |__/ |___ |__|  
+                                                                            
+                             ___  ____ _ _ _ _  _ _    ____ ____ ___  ____ ____ 
+                             |  \ |  | | | | |\ | |    |  | |__| |  \ |___ |__/ 
+                             |__/ |__| |_|_| | \| |___ |__| |  | |__/ |___ |  \ 
+                                                                                
+        """
+        print(title)
         self.ua = UserAgent()
-        self.use_proxy = int(input('[QUESTION] Would you like to use proxies [1] yes [0] no: '))
-        self.method = int(input('[QUESTION] [1] Download 1 video [2] Download multiple videos from txt: '))
+        self.use_proxy = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to use proxies [1] yes [0] no: '))
+        self.method = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] [1] Download 1 video [2] Download multiple videos from txt: '))
         print('')
         self.videos = self.ReadFile('videos.txt','r')
         self.header = headers = {'User-Agent':'okhttp','referer':'https://www.tiktok.com/'}
@@ -57,7 +60,7 @@ class Main:
         return proxies
 
     def DownloadVideo(self):
-        download_url = str(input('> TikTok Video URL: '))
+        download_url = str(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] TikTok Video URL: '))
 
         if 'https://' not in download_url:
             download_url = 'https://{0}'.format(download_url)
@@ -92,7 +95,7 @@ class Main:
         with open('Downloads/{0}'.format(filename+''.join(random.choice('0123456789') for _ in range(6))+'.mp4'), 'wb') as f:
             f.write(download_req.content)
         print('')
-        self.PrintText('DOWNLOADED','{0} -> {1}'.format(filename,download_url),Fore.GREEN,Fore.WHITE)
+        print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] DOWNLOADED | {0} | {1}'.format(filename,download_url))
 
     def DownloadVideos(self,videos):
 
@@ -126,7 +129,7 @@ class Main:
        
         with open('Downloads/{0}'.format(filename+''.join(random.choice('0123456789') for _ in range(6))+'.mp4'), 'wb') as f:
             f.write(download_req.content)
-        self.PrintText('DOWNLOADED','{0} -> {1}'.format(filename,videos),Fore.GREEN,Fore.WHITE)
+        print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] DOWNLOADED | {0} | {1}'.format(filename,videos))
 
     def Start(self):
         if self.method == 2:
