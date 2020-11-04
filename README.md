@@ -1,5 +1,10 @@
 # TikTokVideoDownloader
  This tool is for download video/videos from tiktok.
+
+# Installation
+```
+pip3 install -r requirements.txt
+``` 
  
 # Tool
 ![](https://i.ibb.co/FgxSGS3/tool.png)
