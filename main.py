@@ -1,147 +1,100 @@
-import os
+from helpers import _clear,_setTitle,_printText,_readFile,_getCurrentTime,_getRandomUserAgent,_getRandomProxy,colors
+from threading import Thread,active_count
+from time import sleep
+from random import choice
 import requests
-import json
-import time
-import random
-import sys
-import substring
-from colorama import init,Fore
-from datetime import datetime
-from multiprocessing.dummy import Pool as ThreadPool
-from threading import Thread, Lock
-from fake_useragent import UserAgent
-from bs4 import BeautifulSoup
 
-class Main:
-    def clear(self):
-        if os.name == 'posix':
-            os.system('clear')
-        elif os.name in ('ce', 'nt', 'dos'):
-            os.system('cls')
-        else:
-            print("\n") * 120
-
-    def SetTitle(self,title_name:str):
-        os.system("title {0}".format(title_name))
-
-    def ReadFile(self,filename,method):
-        with open(filename,method) as f:
-            content = [line.strip('\n') for line in f]
-            return content
-
-    def __init__(self):
-        self.SetTitle('One Man Builds TikTok Video Downloader Tool')
-        self.clear()
-        init(convert=True)
-        title = Fore.YELLOW+"""
-                             ___ _ _  _ ___ ____ _  _    _  _ _ ___  ____ ____  
-                              |  | |_/   |  |  | |_/     |  | | |  \ |___ |  |  
-                              |  | | \_  |  |__| | \_     \/  | |__/ |___ |__|  
-                                                                            
-                             ___  ____ _ _ _ _  _ _    ____ ____ ___  ____ ____ 
-                             |  \ |  | | | | |\ | |    |  | |__| |  \ |___ |__/ 
-                             |__/ |__| |_|_| | \| |___ |__| |  | |__/ |___ |  \ 
-                                                                                
+class Downloader:
+    def __init__(self) -> None:
+        _setTitle('[TiktokVideoDownloader] ^| [NoWatermark]')
+        _clear()
+        title = colors['yellow']+"""
+                                   ╔════════════════════════════════════════════════╗
+                                     @@@@@@@ @@@ @@@  @@@ @@@@@@@  @@@@@@  @@@  @@@
+                                       @@!   @@! @@!  !@@   @@!   @@!  @@@ @@!  !@@
+                                       @!!   !!@ @!@@!@!    @!!   @!@  !@! @!@@!@! 
+                                       !!:   !!: !!: :!!    !!:   !!:  !!! !!: :!! 
+                                        :    :    :   :::    :     : :. :   :   :::
+                                   ╚════════════════════════════════════════════════╝
         """
         print(title)
-        self.ua = UserAgent()
-        self.use_proxy = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to use proxies [1] yes [0] no: '))
-        self.method = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] [1] Download 1 video [2] Download multiple videos from txt: '))
+
+        self.downloaded = 0
+        self.retries = 0
+
+        self.use_proxy = int(input(f'{colors["white"]}[>] {colors["yellow"]}[1]Proxy [2]Proxyless:{colors["white"]} '))
+        self.proxy_type = None
+        if self.use_proxy != 2:
+            self.proxy_type = int(input(f'{colors["white"]}[>] {colors["yellow"]}[1]Https [2]Socks4 [3]Socks5:{colors["white"]} '))
+
+        self.session = requests.Session()
         print('')
-        self.videos = self.ReadFile('videos.txt','r')
-        self.header = headers = {'User-Agent':'okhttp','referer':'https://www.tiktok.com/'}
 
-    def GetRandomProxy(self):
-        proxies_file = self.ReadFile('proxies.txt','r')
-        proxies = {
-            "http":"http://{0}".format(random.choice(proxies_file)),
-            "https":"https://{0}".format(random.choice(proxies_file))
-            }
-        return proxies
+    def _titleUpdate(self):
+        while True:
+            _setTitle(f'[TiktokVideoDownloader] ^| [NoWatermark] ^| DOWNLOADED: {self.downloaded} ^| RETRIES: {self.retries}')
+            sleep(0.4)
 
-    def DownloadVideo(self):
-        download_url = str(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] TikTok Video URL: '))
-
-        if 'https://' not in download_url:
-            download_url = 'https://{0}'.format(download_url)
-
-        response = requests.get(download_url,headers=self.header).text
-
-        soup = BeautifulSoup(response,'html.parser')
-        script = soup.find('script',{'id':'__NEXT_DATA__'})
-
-        while script == None:
-            try:
-                if self.use_proxy == 1:
-                    response = requests.get(download_url,headers=self.header,proxies=self.GetRandomProxy()).text
-                    soup = BeautifulSoup(response,'html.parser')
-                    script = soup.find('script',{'id':'__NEXT_DATA__'})
-                else:
-                    response = requests.get(download_url,headers=self.header).text
-                    soup = BeautifulSoup(response,'html.parser')
-                    script = soup.find('script',{'id':'__NEXT_DATA__'})
-                
-                time.sleep(2)
-            except:
-                pass
-            
-        json_data = json.loads(script.string)
-        full_url = json_data['props']['pageProps']['videoData']['itemInfos']['video']['urls'][0]
-
-        download_req = requests.get(full_url,headers=self.header)
-        filename = substring.substringByChar(download_url,'@','/')
-        filename = filename.replace('/','')
-       
-        with open('Downloads/{0}'.format(filename+''.join(random.choice('0123456789') for _ in range(6))+'.mp4'), 'wb') as f:
-            f.write(download_req.content)
-        print('')
-        print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] DOWNLOADED | {0} | {1}'.format(filename,download_url))
-
-    def DownloadVideos(self,videos):
-
-        if 'https://' not in videos:
-            videos = 'https://{0}'.format(videos)
-
-        response = requests.get(videos,headers=self.header).text
-
-        soup = BeautifulSoup(response,'html.parser')
-        script = soup.find('script',{'id':'__NEXT_DATA__'})
-
-        while script == None:
-            try:
-                if self.use_proxy == 1:
-                    response = requests.get(videos,headers=self.header,proxies=self.GetRandomProxy()).text
-                    soup = BeautifulSoup(response,'html.parser')
-                    script = soup.find('script',{'id':'__NEXT_DATA__'})
-                else:
-                    response = requests.get(videos,headers=self.header).text
-                    soup = BeautifulSoup(response,'html.parser')
-                    script = soup.find('script',{'id':'__NEXT_DATA__'})
-            except:
-                pass
-            
-        json_data = json.loads(script.string)
-        full_url = json_data['props']['pageProps']['videoData']['itemInfos']['video']['urls'][0]
-
-        download_req = requests.get(full_url,headers=self.header)
-        filename = substring.substringByChar(videos,'@','/')
-        filename = filename.replace('/','')
-       
-        with open('Downloads/{0}'.format(filename+''.join(random.choice('0123456789') for _ in range(6))+'.mp4'), 'wb') as f:
-            f.write(download_req.content)
-        print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] DOWNLOADED | {0} | {1}'.format(filename,videos))
-
-    def Start(self):
-        if self.method == 2:
-            pool = ThreadPool()
-            results = pool.map(self.DownloadVideos,self.videos)
-            pool.close()
-            pool.join()
-        else:
-            self.DownloadVideo()
-
+    def _download(self,url):
+        useragent = _getRandomUserAgent('useragents.txt')
+        headers = {'User-Agent':useragent}
+        proxy = _getRandomProxy(self.use_proxy,self.proxy_type,'proxies.txt')
+        try:
+            response = self.session.get(f'https://hamod.ga/api/tiktokWithoutWaterMark.php?u={url}',proxies=proxy,headers=headers)
+            if 'link' in response.text:
+                link = response.json()['link']
+                _printText(colors['green'],colors['white'],'FOUND',link)
+                video_content = self.session.get(link,proxies=proxy,headers=headers).content
+                with open(f'[Downloads]/{_getCurrentTime()+"".join(choice("0123456789") for _ in range(6))}.mp4','wb') as f:
+                    f.write(video_content)
+                self.downloaded += 1
+            else:
+                _printText(colors['green'],colors['white'],'RETRY',url)
+                self.retries += 1
+                self._download(url)
+        except Exception:
+            self.retries += 1
+            self._download(url)
         
-if __name__ == "__main__":
-    main = Main()
-    main.Start()
-    
+
+    def _start(self):
+        _setTitle('[TiktokVideoDownloader] ^| [Setup]')
+        _clear()
+        title = colors['yellow']+"""
+                                   ╔════════════════════════════════════════════════╗
+                                     @@@@@@@ @@@ @@@  @@@ @@@@@@@  @@@@@@  @@@  @@@
+                                       @@!   @@! @@!  !@@   @@!   @@!  @@@ @@!  !@@
+                                       @!!   !!@ @!@@!@!    @!!   @!@  !@! @!@@!@! 
+                                       !!:   !!: !!: :!!    !!:   !!:  !!! !!: :!! 
+                                        :    :    :   :::    :     : :. :   :   :::
+                                   ╚════════════════════════════════════════════════╝
+        """
+        print(title)
+        option = int(input(f'{colors["white"]}[>] {colors["yellow"]}[1]Just one video [2]Multiple videos from txt:{colors["white"]} '))
+        Thread(target=self._titleUpdate).start()
+        threads = []
+
+        if option == 1:
+            url = str(input(f'{colors["white"]}[>] {colors["yellow"]}Video URL:{colors["white"]} '))
+            print('')
+            self._download(url)
+        else:
+            video_urls = _readFile('video_urls.txt','r')
+            thread_num = int(input(f'{colors["white"]}[>] {colors["yellow"]}Threads:{colors["white"]} '))
+            print('')
+            for video_url in video_urls:
+                run = True
+                while run:
+                    if active_count() <= thread_num:
+                        thread = Thread(target=self._download,args=(video_url,))
+                        threads.append(thread)
+                        thread.start()
+                        run = False
+
+            for x in threads:
+                x.join()
+        
+        _printText(colors['yellow'],colors['white'],'FINISHED','Process done!')
+
+if __name__ == '__main__':
+    Downloader()._start()
